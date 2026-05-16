@@ -12,9 +12,23 @@ jobs:
 
       - name: 解压源码
         run: |
-          unzip -o FileDrop_Upload.zip -d .
-          mv file_drop_mobile/* . 2>/dev/null || true
-          rm -rf file_drop_mobile
+          python3 -c "
+import zipfile, os
+with zipfile.ZipFile('FileDrop_Upload.zip', 'r') as z:
+    for name in z.namelist():
+        fixed = name.replace('\\\\', '/')
+        if fixed.endswith('/'):
+            os.makedirs(fixed, exist_ok=True)
+        else:
+            os.makedirs(os.path.dirname(fixed), exist_ok=True)
+            with open(fixed, 'wb') as f:
+                f.write(z.read(name))
+"
+          if [ -d "file_drop_mobile" ]; then
+            cp -r file_drop_mobile/* .
+            rm -rf file_drop_mobile
+          fi
+          ls
 
       - uses: subosito/flutter-action@v2
         with:
