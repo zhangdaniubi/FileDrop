@@ -1,5 +1,4 @@
 name: 构建 FileDrop APK
-
 on:
   push:
     branches: [ main ]
@@ -8,31 +7,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 设置 Flutter 环境
-        uses: subosito/flutter-action@v2
+      - name: 解压源码
+        run: |
+          unzip -o FileDrop_Upload.zip -d .
+          mv file_drop_mobile/* . 2>/dev/null || true
+          rm -rf file_drop_mobile
+
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      - name: 创建 Flutter 项目骨架
+      - name: 创建项目骨架
         run: |
           cd ..
           flutter create --project-name=file_drop_mobile temp_project
           cp -r temp_project/android $GITHUB_WORKSPACE/
-          cp -r temp_project/ios $GITHUB_WORKSPACE/ 2>/dev/null || true
 
-      - name: 安装依赖
-        run: flutter pub get
+      - run: flutter pub get
+      - run: flutter build apk --debug
 
-      - name: 构建 APK
-        run: flutter build apk --debug
-
-      - name: 上传 APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: FileDrop-APK
           path: build/app/outputs/flutter-apk/*.apk
