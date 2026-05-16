@@ -1,4 +1,4 @@
-name: 构建 FileDrop APK
+name: Build FileDrop APK
 on:
   push:
     branches: [ main ]
@@ -10,31 +10,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 解压源码
+      - name: Extract source
         run: |
-          python3 -c "
-import zipfile, os
-with zipfile.ZipFile('FileDrop_Upload.zip', 'r') as z:
-    for name in z.namelist():
-        fixed = name.replace('\\\\', '/')
-        if fixed.endswith('/'):
-            os.makedirs(fixed, exist_ok=True)
-        else:
-            os.makedirs(os.path.dirname(fixed), exist_ok=True)
-            with open(fixed, 'wb') as f:
-                f.write(z.read(name))
-"
-          if [ -d "file_drop_mobile" ]; then
-            cp -r file_drop_mobile/* .
-            rm -rf file_drop_mobile
-          fi
+          unzip -o FileDrop_Upload.zip
+          mv file_drop_mobile/* . || true
+          rm -rf file_drop_mobile
           ls
 
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      - name: 创建项目骨架
+      - name: Create Android skeleton
         run: |
           cd ..
           flutter create --project-name=file_drop_mobile temp_project
